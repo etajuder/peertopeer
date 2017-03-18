@@ -37,7 +37,7 @@ class superuser extends Base {
              $this->data["site"]["earnings"]  = $this->p2p->get_site_earnings();
              $this->data["site"]["awaiting_payment"] = $this->p2p->awaiting_payment();
              $this->data["site"]["awaiting_pairing"] = $this->p2p->awaiting_pairing();
-             $this->data["site"]["pay_chart"] = $this->p2p->get_pay_chart_data();
+             $this->data["site"]["pay_chart"] = "";//$this->p2p->get_pay_chart_data();
         }
     }
     

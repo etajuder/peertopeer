@@ -69,20 +69,7 @@
                       
                       <?php else:?>
                       <?php if($user["been_matched"]):?>
-                        <div class="col-md-3">
-                  <section class="panel panel-success">
-                    <header class="panel-heading font-bold">Status</header>
-                    
-                    <div class="panel-body">
-                      <div>
-                        <span class="text-muted">Earning Expecting:</span>
-                        <span class="h3 block">₦<?=$user["amount_expecting"]?></span>
-                      </div>
-                      <div class="line pull-in"></div>
-                      
-                    </div>
-                  </section>
-                </div>
+                        
                       <div class="col-md-9">
                       <div class="panel panel-default">
                 <header class="panel-heading">
@@ -97,7 +84,7 @@
                         
                         <th>Name</th>
                         <th>Phone</th>
-                        
+                        <th>Email</th>
                         <th>Amount</th>
                         <th>Status</th>
                         <th>Action</th>
@@ -110,7 +97,7 @@
                         <td><?=$index?></td>
                         <td><?=$pair["fullname"]?></td>
                         <td><?=$pair["phone"]?></td>
-                        
+                        <td><?=$pair["email"]?></td>
                         <td><?=$pair["amount"]?></td>
                         <td>
                           <?=$pair["paid"]?>

@@ -34,7 +34,7 @@ class Welcome extends Base {
       
             model("p2p_model","p2p");
            
-            print_r($this->p2p->user_expecting_to_be_matched(1));
+            print_r($this->p2p->user_expecting_to_be_paired(0));
             
         }
         

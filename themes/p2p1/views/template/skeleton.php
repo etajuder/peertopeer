@@ -25,7 +25,7 @@
         <a class="btn btn-link visible-xs" data-toggle="class:nav-off-screen,open" data-target="#nav,html">
           <i class="fa fa-bars"></i>
         </a>
-          <a href="<?=App::route($user["username"])?>" class="navbar-brand" data-toggle="fullscreen"><img src="<?=App::Assets()->getAsset("")?>image-resources/logo.png" class="m-r-sm"><?=App::getConfig("site_name")?></a>
+          <a href="<?=App::route($user["username"])?>" class="navbar-brand" data-toggle="fullscreen"><img src="<?=App::Assets()->getAsset("")?>image-resources/logo.png" class="m-r-sm"></a>
         <a class="btn btn-link visible-xs" data-toggle="dropdown" data-target=".nav-user">
           <i class="fa fa-cog"></i>
         </a>
