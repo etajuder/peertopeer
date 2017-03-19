@@ -34,7 +34,7 @@ class p2p_model  extends CI_Model{
                 ->find_one();
         $get_user["timer_stop"] = $get_user["time_start"] + ( 5 * 60 * 60);
         $get_user["timer_stop_unix"] = $get_user["timer_stop"];
-        $get_user["current_level"] = $get_user["level"] == 0 ? $get_user["level"] : $get_user["level"]-1;
+        $get_user["current_level"] = $get_user["level"] == 0 ? $get_user["level"] : $get_user["level"];
         if($get_user["level"] >= 0){
             
         $get_site_level = $this->for_table("site_level")
@@ -54,17 +54,17 @@ class p2p_model  extends CI_Model{
                    ->find_one($get_user["level"]);
             if($get_user["status_level"] == 1){
                $get_user["pay"] = 0;
-               $get_user["amount_expecting"] = 15000;
+               $get_user["amount_expecting"] = 6000;
           }else{
               $get_user["pay"] = 1;
-              $get_user["amount_to_pay"] = 5000;
+              $get_user["amount_to_pay"] = 2000;
           }
         }
         
         }else{
             
              $get_user["pay"] = 1;
-             $get_user["amount_to_pay"] = 5000;
+             $get_user["amount_to_pay"] = 2000;
              
         }
         //have been matched to pay;
@@ -139,14 +139,14 @@ class p2p_model  extends CI_Model{
                     ->find_one();
             if($get_level["level"] == 0 ){
             
-            $get_user["amount"] = 5000; 
+            $get_user["amount"] = 2000; 
             }else{
                 $get_site_level = $this->for_table("site_level")
                         ->find_one($get_level["level"]);
                 if($get_site_level){
                 $get_user["amount"] = $get_site_level->upgrade;    
                 }else{
-                $get_user["amount"] = 5000;    
+                $get_user["amount"] = 2000;    
                 }
                 
             }
@@ -759,7 +759,7 @@ class p2p_model  extends CI_Model{
       }
       
       public function get_paired_users_id(){
-          $ids = [];
+          $ids = [0];
           $get_peerings = $this->for_table("peering")
                   ->where_raw("status = 0 or status = 1")
                   ->find_many();
@@ -771,7 +771,7 @@ class p2p_model  extends CI_Model{
           return $ids;
       }
       public function get_matched_users_id(){
-          $ids = [];
+          $ids = [0];
           $get_matched = $this->for_table("transactions")
                   ->where("status",0)
                   ->find_many();
@@ -840,7 +840,7 @@ class p2p_model  extends CI_Model{
                             ->find_one($transact->level);
                     $amount += $get_site_level->earning;
                     }else{
-                        $amount += 15000;
+                        $amount += 6000;
                     }
                 }else{
                     //get completed payment
@@ -854,7 +854,7 @@ class p2p_model  extends CI_Model{
                             ->find_one($transact->level);
                             $amount += $get_site_level->earning/3;
                             }else{
-                                $amount +=5000;
+                                $amount +=2000;
                             }
                         }
                     }
@@ -1164,7 +1164,7 @@ class p2p_model  extends CI_Model{
       
       foreach ($get_completed_transation as $tran1){
           if($tran1->level == 0){
-              $amount+=15000;
+              $amount+=6000;
           }else{
           $get_level = $this->for_table("site_level")
                   ->find_one($tran1->level); 
@@ -1182,8 +1182,8 @@ class p2p_model  extends CI_Model{
       return count($get_them);
   }
   
-  public function get_next_deletion(){
-      
+  public function count_users(){
+     return count($this->for_table("users")->find_many()) -1;          
   }
 }
 

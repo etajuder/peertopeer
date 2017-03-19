@@ -84,7 +84,7 @@
                         
                         <th>Name</th>
                         <th>Phone</th>
-                        <th>Email</th>
+                        
                         <th>Amount</th>
                         <th>Status</th>
                         <th>Action</th>
@@ -97,7 +97,7 @@
                         <td><?=$index?></td>
                         <td><?=$pair["fullname"]?></td>
                         <td><?=$pair["phone"]?></td>
-                        <td><?=$pair["email"]?></td>
+                        
                         <td><?=$pair["amount"]?></td>
                         <td>
                           <?=$pair["paid"]?>

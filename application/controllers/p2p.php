@@ -30,10 +30,7 @@ class p2p extends Base {
             print $this->session_manager->getSession("referred_by");
         }
         
-        $this->data["site"]["count_west"] = $this->p2p->count_user_by_location(1);
-        $this->data["site"]["count_south"] = $this->p2p->count_user_by_location(2);
-        $this->data["site"]["count_east"] = $this->p2p->count_user_by_location(3);
-        $this->data["site"]["count_north"] = $this->p2p->count_user_by_location(4);
+        $this->data["site"]["count_users"] = $this->p2p->count_users();
         
         $this->data["form"]["message"] = "";
         

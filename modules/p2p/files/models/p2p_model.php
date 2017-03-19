@@ -1182,8 +1182,8 @@ class p2p_model  extends CI_Model{
       return count($get_them);
   }
   
-  public function get_next_deletion(){
-      
+  public function count_users(){
+     return count($this->for_table("users")->find_many()) -1;          
   }
 }
 
