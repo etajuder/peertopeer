@@ -235,11 +235,35 @@ drift.load('32k2dcr86c5w');
    
 
 
-  
+  <section class="call-to-action">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1>We Pay Nigerian is the best and fast peer to peer system that have ever existed <br> Join us today and be part of this great revolution</h1>
+                    <a href="<?=App::route("register")?>" class="btn btn-primary">Join Now</a>
+                </div>
+            </div>
+        </div>
+    </section>
 
  
     
-    
+    <section class="fun-facts">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12 col-sm-12 col-md-12">
+                      <div class="counter-item">
+                        <i class="fa fa-users"></i>
+                        <div class="timer" id="item1" data-to="991" data-speed="5000">991</div>
+                        <h5>Our Users And Still Counting</h5>                               
+                      </div>
+                    </div>  
+                  
+                    
+                    </div>
+            </div>
+        </div>
+    </section>
 
     <div id="loader">
         <div class="spinner">

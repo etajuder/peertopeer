@@ -3,7 +3,7 @@
 <div class="main-box infographic-box colored red-bg">
 <i class="fa fa-user"></i>
 <span class="headline">Users</span>
-<span class="value"><?=$count["users"]?></span>
+<span class="value"><?=$count["users"]-1?></span>
 </div>
 </div>
     
@@ -21,7 +21,7 @@
 <div class="main-box infographic-box colored red-bg">
 <i class="fa fa-users"></i>
 <span class="headline">Awaiting Payment</span>
-<span class="value"><?=$site["awaiting_payment"]?></span>
+<span class="value"><?=$site["awaiting_payment"]-1?></span>
 </div>
 </div>
 

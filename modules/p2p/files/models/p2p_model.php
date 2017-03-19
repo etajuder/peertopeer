@@ -34,7 +34,7 @@ class p2p_model  extends CI_Model{
                 ->find_one();
         $get_user["timer_stop"] = $get_user["time_start"] + ( 5 * 60 * 60);
         $get_user["timer_stop_unix"] = $get_user["timer_stop"];
-        $get_user["current_level"] = $get_user["level"] == 0 ? $get_user["level"] : $get_user["level"]-1;
+        $get_user["current_level"] = $get_user["level"] == 0 ? $get_user["level"] : $get_user["level"];
         if($get_user["level"] >= 0){
             
         $get_site_level = $this->for_table("site_level")
@@ -759,7 +759,7 @@ class p2p_model  extends CI_Model{
       }
       
       public function get_paired_users_id(){
-          $ids = [];
+          $ids = [0];
           $get_peerings = $this->for_table("peering")
                   ->where_raw("status = 0 or status = 1")
                   ->find_many();
@@ -771,7 +771,7 @@ class p2p_model  extends CI_Model{
           return $ids;
       }
       public function get_matched_users_id(){
-          $ids = [];
+          $ids = [0];
           $get_matched = $this->for_table("transactions")
                   ->where("status",0)
                   ->find_many();
