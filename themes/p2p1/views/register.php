@@ -115,19 +115,7 @@ drift.load('32k2dcr86c5w');
                             <input class="form-control" id="exampleInputEmail1" placeholder="Username" value="<?=@$form["username"]?>" type="text" name="username" required="">
                         </div>
                     </div>
-                    <div class="form-group">
-                        <div class="input-group">
-                            
-                            <select name="location" class="form-control" required="">
-                                <option value="">Select Location</option>
-                                <option value="1">Western Nigeria</option>
-                                <option value="2">Southern Nigeria</option>
-                                <option value="3">Eastern Nigeria</option>
-                                <option value="4">Northern Nigeria</option>
-                                
-                            </select>
-                        </div>
-                    </div>
+                    
                     <div class="form-group">
                         <div class="input-group">
                             <span class="input-group-addon addon-inside bg-gray">
@@ -194,7 +182,7 @@ drift.load('32k2dcr86c5w');
                 </div>
             </div>
             <p style="font-size: 19px; font-weight: bold">Please Register only if you are ready to make payment, your account details will be deleted permanent
-         If you dont make payment within 10hrs</p>
+         If you dont make payment within 5hrs</p>
 
         </form>
        

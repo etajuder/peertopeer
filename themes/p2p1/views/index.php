@@ -254,7 +254,7 @@ drift.load('32k2dcr86c5w');
                 <div class="col-xs-12 col-sm-12 col-md-12">
                       <div class="counter-item">
                         <i class="fa fa-users"></i>
-                        <div class="timer" id="item1" data-to="991" data-speed="5000">991</div>
+                        <div class="timer" id="item1" data-to="<?=$site["count_users"]?>" data-speed="5000"><?=$site["count_users"]?></div>
                         <h5>Our Users And Still Counting</h5>                               
                       </div>
                     </div>  
