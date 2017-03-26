@@ -135,7 +135,7 @@ class superuser extends Base {
                 redirect(App::route("superuser","users"));
                 break;
             case "match_operation":
-                $this->p2p->trigger_transaction();
+                $this->p2p->matching_system();
                 break;
         }
     }

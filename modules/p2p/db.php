@@ -431,7 +431,56 @@ class db {
            $CI->dbforge->add_field($refree);
         $CI->dbforge->add_key('id', TRUE);
         $CI->dbforge->create_table('referee', TRUE);
-        
+        $ph = [
+            "id"=>[
+                "type"=>"int",
+                "auto_increment"=>true
+            ],
+            "user_id"=>[
+                "type"=>"int",
+                "constraint"=>11
+            ],
+            "package_id"=>[
+                "type"=>"int",
+                "constraint"=>11
+            ],
+            "created_at"=>[
+                "type"=>"varchar",
+                "constraint"=>50
+            ],
+            "updated_at"=>[
+                "type"=>"varchar",
+                "constraint"=>50
+            ]
+        ];
+         $CI->dbforge->add_field($ph);
+        $CI->dbforge->add_key('id', TRUE);
+        $CI->dbforge->create_table('phelp', TRUE);
+         $gh = [
+            "id"=>[
+                "type"=>"int",
+                "auto_increment"=>true
+            ],
+            "user_id"=>[
+                "type"=>"int",
+                "constraint"=>11
+            ],
+            "package_id"=>[
+                "type"=>"int",
+                "constraint"=>11
+            ],
+            "created_at"=>[
+                "type"=>"varchar",
+                "constraint"=>50
+            ],
+            "updated_at"=>[
+                "type"=>"varchar",
+                "constraint"=>50
+            ]
+        ];
+          $CI->dbforge->add_field($gh);
+        $CI->dbforge->add_key('id', TRUE);
+        $CI->dbforge->create_table('ghelp', TRUE);
           }
     
     public function drop(){

@@ -158,6 +158,16 @@ class p2p extends Base {
             case "heartbeat":
                 $this->p2p->heartbeats();
                 break;
+             case "activate_package":
+                 $id = (int)Usegment(3);
+                 if(is_int($id)){
+                 $this->p2p->activate_package($id);
+                 redirect(App::route($this->data["user"]["username"]));
+                 }else{
+                    
+                   redirect(App::route($this->data["user"]["username"]));
+                 }
+                 break;
         }
     }
     

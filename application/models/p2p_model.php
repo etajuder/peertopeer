@@ -35,81 +35,16 @@ class p2p_model  extends CI_Model{
         $get_user["timer_stop"] = $get_user["time_start"] + ( 5 * 60 * 60);
         $get_user["timer_stop_unix"] = $get_user["timer_stop"];
         $get_user["current_level"] = $get_user["level"] == 0 ? $get_user["level"] : $get_user["level"];
-        if($get_user["level"] >= 0){
-            
-        $get_site_level = $this->for_table("site_level")
-                   ->find_one($get_user["level"]);
-        if($get_site_level){
-          if($get_user["status_level"] == 1){
-               $get_user["pay"] = 0;
-               $get_site_level = $this->for_table("site_level")
-                   ->find_one($get_user["level"]);
-               $get_user["amount_expecting"] = $get_site_level->earning;
-          }else{
-              $get_user["pay"] = 1;
-              $get_user["amount_to_pay"] = $get_site_level->upgrade;
-          }
-        }else{
-            $get_site_level = $this->for_table("site_level")
-                   ->find_one($get_user["level"]);
-            if($get_user["status_level"] == 1){
-               $get_user["pay"] = 0;
-               $get_user["amount_expecting"] = 6000;
-          }else{
-              $get_user["pay"] = 1;
-              $get_user["amount_to_pay"] = 2000;
-          }
-        }
+               
+        //Have voulunteered to pay;
+        $get_user["have_phed"] = in_array($get_user["id"], $this->users_providing_help());
+        $get_user["have_ghed"] = in_array($get_user["id"], $this->users_getting_help());
+           
         
-        }else{
-            
-             $get_user["pay"] = 1;
-             $get_user["amount_to_pay"] = 2000;
-             
-        }
-        //have been matched to pay;
-        if($get_user["pay"]){
-            $get_peer = $this->for_table("peering")
-                    ->where_raw("user_id = ? and status = 0", [$get_user["id"]])
-                    ->find_one();
-             $get_transaction = $this->for_table("transactions")
-                    ->find_one($get_peer["transaction_id"]);
-             
-            if($get_peer){
-                $get_user["transaction_id"] = ENCRYPT::Encrypts($get_transaction->id());
-                $get_user["been_paired"] = true;
-                $get_user["user_matched"] = $this->get_user_matched_to_me($get_transaction->id());
-            }else{
-                //if awaiting confirmation
-                $get_user["awaiting_confirmation"] = $this->for_table("peering")
-                    ->where_raw("user_id = ? and status = 1", [$get_user["id"]])
-                    ->find_one();
-                $get_user["been_paired"] = false;
-            }
-        }else{
-            
-            $get_transaction = $this->for_table("transactions")
-                    ->where_raw("user_id = ? and status = 0", [$get_user["id"]])
-                    ->find_one();
-            
-            if($get_transaction){
-                $get_user["transaction_id"] = ENCRYPT::Encrypts($get_transaction->id());
-                $get_user["been_matched"] = true;
-                $get_user["users_paired"] = $this->get_users_paired_to_me($get_transaction->id());
-            }else{
-                $get_user["been_matched"] = false;
-            }
-        }
         $get_user["earning"] = $this->get_earnings($get_user["id"]);
         $get_user["referral_url"] = App::route("?r=").$get_user["username"];
         $get_user["contests"] = $this->get_my_contest();
-        if($get_user["pay"]){
-            $get_p = $this->for_table("peering")
-                    ->where_raw("user_id = ? and status = 0", [$get_user["id"]])
-                    ->find_one();
-            
-            $get_user["timer_stop"] = $get_p["updated_at"] + ( 5 * 60 * 60);
-        }
+        
         return $get_user;
     }
     //Single user i am to pay 
@@ -1185,5 +1120,134 @@ class p2p_model  extends CI_Model{
   public function count_users(){
      return count($this->for_table("users")->find_many()) -1;          
   }
+  
+    public function activate_package($package_id){
+         if(!$this->phed()){
+             $new_gh = $this->for_table("phelp")
+                     ->create();
+             $new_gh->user_id = $this->user["id"];
+             $new_gh->package_id = $package_id;
+             $new_gh->created_at = time();
+             $new_gh->updated_at = time();
+             $new_gh->save();
+         }
+    }
+    
+    public function phed(){
+      return $this->for_table("phelp")
+                ->where("user_id", $this->user["id"])->find_one();
+    }
+    
+ 
+    public function users_providing_help(){
+        $ids = [];
+       $phs = $this->for_table("phelp")
+                ->find_many();
+        foreach ($phs as $ph){
+            $ids[] = $ph["user_id"];
+        }
+        
+        return $ids;
+    }
+    
+    
+    public function users_getting_help(){
+        $ids = $this->get_top_admin();
+        $ghs = $this->for_table("ghelp")
+                ->find_many();
+        foreach ($ghs as $gh){
+            $ids[] = $gh["user_id"];
+        }
+        
+        return $ids;
+    }
+    
+    
+    public function user_getting_help_by_level($level){
+        $ids = $this->get_top_admin();
+        $get_users = $this->for_table("ghelp")
+                ->where_raw("package_id = ?", $level)
+                ->find_many();
+        foreach ($get_users as $user){
+            $ids[] = $user["user_id"];
+        }
+        return $ids;
+    }
+    
+    public function users_providing_help_by_level($level){
+        $ids = [];
+        $get_users = $this->for_table("phelp")
+                ->where_raw("package_id = ?", [$level])
+                ->find_many();
+        foreach ($get_users as $user){
+            $ids[] = $user["user_id"];
+        }
+        
+        return $ids;
+    }
+    
+    public function matching_system(){
+        $levels = $this->get_site_levels();
+        foreach ($levels as $level){
+            $user_gettting_help = $this->user_getting_help_by_level($level->id);
+            foreach ($user_gettting_help as $user_gh){
+                $user_providing_help = $this->users_providing_help_by_level($level->id);
+                $total = count($user_providing_help);
+               if($total >= 1){
+                   //create a new transaction
+                   $transaction = $this->for_table("transactions")
+                           ->create();
+                   $transaction->user_id = $user_gh;
+                   $transaction->level = $level->id;
+                   $transaction->status = 0;
+                   $transaction->created_at = time();
+                   $transaction->updated_at = time();
+                   if($transaction->save()){
+                       $index =1;
+                       foreach ($user_providing_help as $phed){
+                           if($index <=2){
+                               $new_peering = $this->for_table("peering")
+                                       ->create();
+                               $new_peering->user_id = $phed;
+                               $new_peering->transaction_id = $transaction->id();
+                               $new_peering->status = 0;
+                               $new_peering->created_at = time();
+                               $new_peering->updated_at = time();
+                               if($new_peering->save()){
+                                   $get_ph = $this->for_table("phelp")
+                                           ->where_raw("user_id = ?",[$phed])
+                                           ->find_one();
+                                   if($get_ph){
+                                       $get_ph->delete();
+                                   }
+                                   if($index == 2){
+                                       $get_gh = $this->for_table("ghelp")
+                                               ->where_raw("user_id = ?", [$user_gh])
+                                               ->find_one();
+                                   if($get_gh){
+                                       $get_gh->delete();
+                                   }
+                                   }
+                               }
+                           }else{
+                               break;
+                           };
+                          $index+=1;
+                       }
+                       //delete
+                      
+                       //pair people to him
+                       
+                       
+                   }
+               }
+            }
+            
+            
+        }
+    }
+    
+    
+    
 }
 

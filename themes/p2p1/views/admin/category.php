@@ -11,8 +11,8 @@
 <thead>
 <tr>
 <th><a href="#"><span>S/N</span></a></th>
+<th><a href="#"><span>Donate</span></a></th>
 <th><a href="#"><span>Earnings</span></a></th>
-<th><a href="#"><span>Upgrades</span></a></th>
 <th>&nbsp;</th>
 </tr>
 </thead>
@@ -54,19 +54,19 @@
     <div class="col-lg-6">
 <div class="main-box">
 <header class="main-box-header clearfix">
-<h2>New Level</h2>
+<h2>New Package</h2>
 </header>
 <div class="main-box-body clearfix">
     <form class="" role="form" action="<?=App::route("requests/add_site_level")?>" method="post">
 <div class="form-group">
-<label class="sr-only" for="exampleInputEmail2">Earnings</label>
-<input class="form-control" id="exampleInputEmail2" placeholder="Earning Amount without comma" required="" type="text" name="earning">
+<label class="sr-only" for="exampleInputEmail2">Donate</label>
+<input class="form-control" id="exampleInputEmail2" placeholder="Amount to donate" required="" type="text" name="earning">
 </div>
  <div class="form-group">
-<label class="sr-only" for="exampleInputEmail2">Amount To Upgrade</label>
-<input class="form-control" id="exampleInputEmail2" placeholder="Upgrade Amount without comma" required="" type="text" name="upgrade">
+<label class="sr-only" for="exampleInputEmail2">Earning</label>
+<input class="form-control" id="exampleInputEmail2" placeholder="Amount Expecting" required="" type="text" name="upgrade">
 </div>
-<button type="submit" class="btn btn-success">Add Level</button>
+<button type="submit" class="btn btn-success">Add Package</button>
 </form>
 </div>
 </div>
