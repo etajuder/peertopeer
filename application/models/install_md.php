@@ -73,12 +73,6 @@ class install_md extends CI_Model{
                 'constraint' =>70
                 
             ),
-             'user_id'=>array(
-                'type' => 'int',
-                'constraint' =>11,
-                 'default'=>0
-                
-            )
             
         );
         $this->dbforge->add_field($field);
@@ -171,12 +165,12 @@ class install_md extends CI_Model{
             ),
             'tweet_id' =>array(
                 'type' =>'varchar',
-                'constraint' =>225,
+                'constraint' =>50,
                 'null' =>TRUE
             ),
             'Sykup_page' =>array(
                 'type'=>'varchar',
-                'constraint'=>225
+                'constraint'=>70
             ),
             'maintainance_mode' =>array(
                 'type' =>'int',
@@ -323,7 +317,7 @@ class install_md extends CI_Model{
     
     
     public function getSes($data){
-        return $this->session->userdata($data);
+        return $_SESSION[$data];
     }
     
     public function addAdmin(){

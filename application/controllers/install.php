@@ -27,7 +27,8 @@ class install extends CI_Controller {
     }
     
     public function installdb(){
-        $_SESSION["host"] = post("host");
+        
+        
         $host = $this->input->post('host');
         $user = $this->input->post('user');
         $password = $this->input->post('pass');
@@ -39,6 +40,7 @@ class install extends CI_Controller {
     private function __Check($host,$username,$password,$database){
         
          if(@mysql_connect($host, $username, $password)){
+             
               if(mysql_select_db($database)){
                   $this->session->set_flashdata('item',  App::message('success', 'Connected <strong>Happy Coding</strong>'));
                   $this->session->set_userdata(array(
@@ -47,6 +49,10 @@ class install extends CI_Controller {
                       'pass'=>$this->input->post('pass'),
                       'db'=>$this->input->post('db')
                   ));
+                  $_SESSION["host"] = $this->input->post('host');
+                  $_SESSION["user"] = $this->input->post('user');
+                  $_SESSION["pass"] = $this->input->post('pass');
+                  $_SESSION["db"] = $this->input->post('db');
                   header("location:".App::route('install', 'site'));
               }else{
                   $this->session->set_flashdata('item',  App::message('error', '<strong>Database does not exists</strong>'));
@@ -70,11 +76,12 @@ class install extends CI_Controller {
          $this->md->addAdmin();
          $this->md->insertConfig();
          Theme::Wapjude('install-final');
-         System::insert($this->session->userdata('host'), $this->session->userdata('user'), $this->session->userdata('pass'), $this->session->userdata('db'));
+         System::insert($_SESSION["host"], $_SESSION["user"], $_SESSION["pass"], $_SESSION["db"]);
          System::Install("yes");
          
          $this->load->database('default');
          $this->session->sess_destroy();
+         session_destroy();
     }
     
 }

@@ -39,12 +39,115 @@ class p2p_model  extends CI_Model{
         //Have voulunteered to pay;
         $get_user["have_phed"] = in_array($get_user["id"], $this->users_providing_help());
         $get_user["have_ghed"] = in_array($get_user["id"], $this->users_getting_help());
+         
+        
+        if($get_user["have_phed"]){
+           $chec = $this->for_table("phelp")
+                   ->select("site_level.*")
+                   ->where("phelp.user_id",  (int)$get_user["id"])
+                   ->inner_join("site_level","site_level.id = phelp.package_id")
+                   ->find_one();
            
+            
+            $get_user["amount"] = $chec->earning;
+            
+        }
+          if($get_user["have_ghed"]){
+           $chec = $this->for_table("ghelp")
+                   ->select("site_level.*")
+                   ->where("ghelp.user_id",  (int)$get_user["id"])
+                   ->inner_join("site_level","site_level.id = ghelp.package_id")
+                   ->find_one();
+           if($chec){
+            
+            $get_user["amount"] = $chec->upgrade;
+           } 
+        }
+        
+        
+        
+            $get_peer = $this->for_table("peering")
+                    ->where_raw("user_id = ? and status = 0", [$get_user["id"]])
+                    ->find_one();
+             $get_transaction = $this->for_table("transactions")
+                    ->find_one($get_peer["transaction_id"]);
+             
+            if($get_peer){
+                $get_user["transaction_id"] = ENCRYPT::Encrypts($get_transaction->id());
+                $get_user["been_paired"] = true;
+                $get_user["awaiting_confirmation"] = false;
+                $get_user["user_matched"] = $this->get_user_matched_to_me($get_transaction->id());
+            }else{
+                //if awaiting confirmation
+                $get_user["awaiting_confirmation"] = $this->for_table("peering")
+                    ->where_raw("user_id = ? and status = 1", [$get_user["id"]])
+                    ->find_one();
+                $get_user["been_paired"] = false;
+            }
+       
+            
+            $get_transaction = $this->for_table("transactions")
+                    ->where_raw("user_id = ? and status = 0", [$get_user["id"]])
+                    ->find_one();
+            
+            if($get_transaction){
+                $get_user["transaction_id"] = ENCRYPT::Encrypts($get_transaction->id());
+                $get_user["been_matched"] = true;
+     
+            }else{
+                $get_user["been_matched"] = false;
+            }
         
         $get_user["earning"] = $this->get_earnings($get_user["id"]);
         $get_user["referral_url"] = App::route("?r=").$get_user["username"];
         $get_user["contests"] = $this->get_my_contest();
         
+        if($get_user["been_paired"]){
+            
+            
+            $get_p = $this->for_table("peering")
+                    ->where_raw("user_id = ? and status = 0", [$get_user["id"]])
+                    ->find_one();
+            $get_t = $this->for_table("transactions")
+                    ->select("site_level.*")
+                    ->where_raw("transactions.id = ? ", [$get_p["transaction_id"]])
+                    ->inner_join("site_level", "site_level.id = transactions.level")
+                    ->find_one();
+            $get_user["amount_to_pay"] = $get_t->earning;
+            $get_user["timer_stop"] = $get_p["updated_at"] + ( 7 * 60 * 60);
+        
+            
+            
+        }elseif($get_user["awaiting_confirmation"]){
+            $get_p = $this->for_table("peering")
+                    ->where_raw("user_id = ? and status = 1", [$get_user["id"]])
+                    ->find_one();
+            $get_t = $this->for_table("transactions")
+                    ->select("site_level.*")
+                    ->where_raw("transactions.id = ? ", [$get_p["transaction_id"]])
+                    ->inner_join("site_level", "site_level.id = transactions.level")
+                    ->find_one();
+            $get_user["amount_to_pay"] = $get_t->earning;
+            $get_user["timer_stop"] = $get_p["updated_at"] + ( 7 * 60 * 60);
+        
+            
+        }elseif($get_user["been_matched"]){
+            
+             $get_t = $this->for_table("transactions")
+                    ->select("transactions.id")
+                    ->select("site_level.earning")
+                     ->select("site_level.upgrade")
+                    ->where_raw("user_id = ? and status = 0 ", [$get_user["id"]])
+                    ->inner_join("site_level", "site_level.id = transactions.level")
+                    ->find_many();
+             $transactions = [];
+            foreach ($get_t as $tran){
+            $transactions[] = $this->get_users_paired_to_me($tran["id"]);
+            $get_user["amount_to_earn"] += $tran["upgrade"];    
+            }
+            $get_user["users_paired"] = $transactions;
+        }
+       
         return $get_user;
     }
     //Single user i am to pay 
@@ -69,22 +172,13 @@ class p2p_model  extends CI_Model{
              $get_t->delete();
            }else{
             //get amount to be paid 
-            $get_level = $this->for_table("user_level")
-                    ->where_raw("user_id = ?", [$get_user["id"]])
+            $get_level = $this->for_table("transactions")
+                    ->where_raw("transactions.id = ?",[$transaction_id])
+                    ->select("site_level.*")
+                    ->inner_join("site_level", "site_level.id = transactions.level")
                     ->find_one();
-            if($get_level["level"] == 0 ){
-            
-            $get_user["amount"] = 2000; 
-            }else{
-                $get_site_level = $this->for_table("site_level")
-                        ->find_one($get_level["level"]);
-                if($get_site_level){
-                $get_user["amount"] = $get_site_level->upgrade;    
-                }else{
-                $get_user["amount"] = 2000;    
-                }
-                
-            }
+            $get_user["amount"] = $get_level->earning;
+            $get_user["tran_id"] = $transaction_id;
             $get_user["paid"] = $this->get_peering_status($get_user["id"],$transaction_id)->status;
             if(!$get_user["paid"]){
                 $get_user["paid"] = "unpaid";
@@ -411,13 +505,10 @@ class p2p_model  extends CI_Model{
                
                if(!$get_peering){
                     //then you need fresh three person
-                   $get_user_level = $this->for_table("user_level")
-                           ->where_raw("user_id = ?", [$transact["user_id"]])
-                           ->find_one();
-                   if($get_user_level){
-                   $get_remaining = 3;
-                   $users_available_for_u = $this->user_expecting_to_be_paired($get_user_level["level"]);
-                   if(count($users_available_for_u) >= 3){
+                  
+                   $get_remaining = 2;
+                   $users_available_for_u = $this->users_providing_help_by_level($transact->level);
+                   if(count($users_available_for_u) >= 2){
                      for($j = 1; $j<= $get_remaining; $j++){
                            $new_peering = $this->for_table("peering")
                                ->create();
@@ -426,21 +517,27 @@ class p2p_model  extends CI_Model{
                        $new_peering->transaction_id = $transact["id"];
                        $new_peering->created_at = time();
                        $new_peering->updated_at = time();
-                       $new_peering->save();
+                     if($new_peering->save()){
+                       $get_ph = $this->for_table("phelp")
+                               ->where_raw("user_id = ?", [$users_available_for_u[$j]])
+                               ->find_one();
+                       if($get_ph){
+                           $get_ph->delete();
+                       }
+                     }
+                       
                        print "replaced<br>";
                      }
                    }
                    
-                   }
-               }else{
-                   //then you need fresh three person
-                   $get_user_level = $this->for_table("user_level")
-                           ->where_raw("user_id = ?", [$transact["user_id"]])
-                           ->find_one();
-                   if($get_user_level){
-                   $get_remaining = 3 - count($get_peering);
                    
-                   $users_available_for_u = $this->user_expecting_to_be_paired($get_user_level["level"]);
+               }else{
+                   //then you need fresh replacement person
+                  
+                   
+                   $get_remaining = 2 - count($get_peering);
+                   
+                   $users_available_for_u = $this->users_providing_help_by_level($transact["level"]);
                    if($get_remaining > 0){
                    if(count($users_available_for_u) >= $get_remaining){
                      for($j = 1; $j<= $get_remaining; $j++){
@@ -452,12 +549,19 @@ class p2p_model  extends CI_Model{
                        $new_peering->transaction_id = $transact["id"];
                        $new_peering->created_at = time();
                        $new_peering->updated_at = time();
-                       $new_peering->save();
+                        if($new_peering->save()){
+                       $get_ph = $this->for_table("phelp")
+                               ->where_raw("user_id = ?", [$users_available_for_u[$j]])
+                               ->find_one();
+                       if($get_ph){
+                           $get_ph->delete();
+                       }
+                     }
                         print "replaced<br>";
                      }
                    }
                    }
-                   }
+                   
                }
                
            }
@@ -471,10 +575,9 @@ class p2p_model  extends CI_Model{
                    ->find_many();
            foreach ($peering as $used){
                $time_start = $used["updated_at"];
-               $time_stop = $time_start + (5 * 60 * 60);
+               $time_stop = $time_start + (7 * 60 * 60);
                $time_now = time();
                if($time_now > $time_stop){
-                   if(!$this->awaiting_matching($used["user_id"])){
                    //delete_everything about this user
                    $get_user = $this->for_table("users")
                           ->find_one($used["user_id"]);
@@ -483,15 +586,18 @@ class p2p_model  extends CI_Model{
                        $get_user->delete();
                        print "user deleted<br>";
                    }
-                  
-                   $get_user_level = $this->for_table("user_level")
-                           ->where_raw("user_id = ?", [$used["user_id"]])
-                           ->find_one();
-                   if($get_user_level){
-                       $get_user_level->delete();
-                       print "user_level deleted <br>";
-                   }
-                        }
+                  $get_gh = $this->for_table("ghelp")
+                          ->where_raw("user_id = ?", [$used["user_id"]])
+                          ->find_one();
+                  if($get_gh){
+                      $get_gh->delete();
+                  }
+                   $get_ph = $this->for_table("phelp")
+                          ->where_raw("user_id = ?", [$used["user_id"]])
+                          ->find_one();
+                  if($get_ph){
+                      $get_ph->delete();
+                  }     
                    //delete confirmation
                    $get_peering = $this->for_table("peering")
                            ->where_raw("user_id = ? and status !=2", [$used["user_id"]])
@@ -535,24 +641,28 @@ class p2p_model  extends CI_Model{
        
        
        public function change_transaction_status($action,$user_id){
-           $get_transaction = $this->for_table("transactions")
-                   ->where_raw("user_id = ? and status=0", [$this->user["id"]])
-                   ->find_one();
+           
            $get_user = $this->for_table("peering")
-                   ->where_raw("transaction_id = ? and user_id= ?",[$get_transaction->id(),$user_id])
+                   ->where_raw("user_id= ? and status = 1",[$user_id])        
                    ->find_one();
            
-           $get_payee_level = $this->for_table("user_level")
-                   ->where_raw("user_id = ?", [$user_id])
+           $get_transaction = $this->for_table("transactions")
+                   ->where_raw("id = ? and status=0", [$get_user["transaction_id"]])
                    ->find_one();
-           
            switch ($action){
                case "activate_pay":
                    $get_user->status = 2;
                    $get_user->updated_at = time();
-                
-               $get_payee_level->status = 1;
-                   $get_payee_level->save();
+               
+                   //add to get help
+                   $new_help = $this->for_table("ghelp")
+                           ->create();
+                   $new_help->user_id = $get_user["user_id"];
+                   $new_help->package_id = $get_transaction->level;
+                   $new_help->created_at = time();
+                   $new_help->updated_at = time();
+                   $new_help->save();
+                   
                    break;
                case "deactivate_pay":
                    $get_user->status = 3;
@@ -567,31 +677,20 @@ class p2p_model  extends CI_Model{
        
        public function check_transaction($user_id){
            $get_transaction = $this->for_table("transactions")
-                   ->where_raw("user_id = ? and status=0", [$this->user["id"]])
-                   ->find_one();
+                   ->find_one(get("tran_id"));
            $get_peerings = $this->for_table("peering")
                    ->where_raw("transaction_id = ? and status = 2", [$get_transaction->id()])
                    ->find_many();
            $total = count($get_peerings);
-           if($total == 3){
+           if($total == 2){
                $get_transaction->status = 1;
                $get_transaction->save();
                //upgrade user 
                
-               $get_user = $this->for_table("user_level")
-                       ->where_raw("user_id = ?", [$get_transaction->user_id])
-                       ->find_one();
                //if is top admin upgrade automatically
                //delete all peerings under him
                
-               $get_user->level = $get_user->level + 1;
-               if(in_array($get_user->user_id, $this->get_top_admin())){
-                 $get_user->status = 1;  
-               }else{
-               $get_user->status = 0;    
-               }
                
-               $get_user->save();
            }
        }
        
@@ -684,10 +783,8 @@ class p2p_model  extends CI_Model{
       }
       
       public function awaiting_pairing(){
-          $already_peered = join(",", $this->get_paired_users_id());
           
-          $get_users = $this->for_table("user_level")
-                  ->where_raw("( level >=0 and status = 0) and user_id not in ($already_peered)")
+          $get_users = $this->for_table("phelp")
                   
                   ->find_many();
           return count($get_users);
@@ -719,30 +816,44 @@ class p2p_model  extends CI_Model{
       }
       
       public function awaiting_payment(){
-          $already_matched = join(",", $this->get_matched_users_id());
-          $get_users = $this->for_table("user_level")
-                  ->where_raw("(level >=0 and status = 1) and user_id not in ($already_matched)")
+         
+          $get_users = $this->for_table("ghelp")
+                  
                   ->find_many();
           return count($get_users);
       }
     public function get_confirmations(){
        $confirmations = [];
-       if(!$this->user["pay"]){
-           if($this->user["been_matched"]){
-               $transaction_id = ENCRYPT::Decrypt($this->user["transaction_id"]);
+               $transacts = $this->my_current_transactions();
+               foreach ($transacts as $transact){
                $get_notifications = $this->for_table("confirmation")
-                       ->where_raw("transaction_id = ?", [$transaction_id])
+                       ->where_raw("transaction_id = ?", [$transact])
                        ->find_many();
                foreach ($get_notifications as $confirm){
                    $confirm["image"] = App::Assets()->getUploads()->getImage($confirm["upload"]);
                    $confirmations[] = $confirm;
                }
-           }
-           
-       }
+               }
+       
            return $confirmations;     
     }
-    
+    /**
+     * 
+     * @return array 
+     */
+        public function my_current_transactions(){
+            $ids = [];
+               $get_tran = $this->for_table("transactions")
+                       ->where_raw("user_id = ? and status = 0", [$this->user["id"]])
+                       ->find_many();
+               foreach ($get_tran as $tran){
+                   $ids[] = $tran["id"];
+               }
+               
+               return $ids;
+        }
+
+
     public function read_confirmation($id){
         $get_confirmation = $this->for_table("confirmations")
                 ->find_one($id);
@@ -1103,7 +1214,7 @@ class p2p_model  extends CI_Model{
           }else{
           $get_level = $this->for_table("site_level")
                   ->find_one($tran1->level); 
-          $amount += $get_level->earning;
+          $amount += $get_level->upgrade;
           
           }
       }
@@ -1187,13 +1298,31 @@ class p2p_model  extends CI_Model{
     }
     
     public function matching_system(){
+        try {
+            $this->ban_uncomplete_transactions();
+        } catch (Exception $exc) {
+            echo $exc->getTraceAsString();
+        }
+        try {
+            $this->complete_users();
+        } catch (Exception $exc) {
+            echo $exc->getTraceAsString();
+        }
+
+
+
         $levels = $this->get_site_levels();
         foreach ($levels as $level){
             $user_gettting_help = $this->user_getting_help_by_level($level->id);
             foreach ($user_gettting_help as $user_gh){
                 $user_providing_help = $this->users_providing_help_by_level($level->id);
                 $total = count($user_providing_help);
-               if($total >= 1){
+                //if users have not been recieving help on his level before
+                $get_transact = $this->for_table("transactions")
+                        ->where_raw("user_id = ? and  level = ? and status = 0", [$user_gh,$level->id])
+                        ->find_one();
+                if(!$get_transact){
+               if($total >= 2){
                    //create a new transaction
                    $transaction = $this->for_table("transactions")
                            ->create();
@@ -1241,6 +1370,7 @@ class p2p_model  extends CI_Model{
                        
                    }
                }
+                }
             }
             
             
