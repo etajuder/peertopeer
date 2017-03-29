@@ -46,13 +46,12 @@
 					<div class="row">
 						<div class="col-xs-12">
 							<div id="login-box-inner">
-								<!-- <img src="img/logo-login.png" alt="SuperheroAdmin" class="img-responsive" id="login-logo"/> -->
 								<div id="login-logo">
 									Congratulation
 								</div>
 								
-                                                            <?=  App::message('suc', '<a href="'.base_url().'">Visit your news Page</a>')?> <br>
-                                                             <?=  App::message('suc', '<a href="'.App::route("admin", "").'">Visit your admin Page</a>')?> <br>
+                                                            <?=  App::message('suc', '<a href="'.base_url().'">Visit your main Page</a>')?> <br>
+                                                             <?=  App::message('suc', '<a href="'.App::route("superuser", "").'">Visit your admin Page</a>')?> <br>
                                                              
                                                              <em>Your main page is in maintainance mode <?=System::Maintain()?></em>
 							</div>

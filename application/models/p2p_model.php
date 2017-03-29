@@ -1118,7 +1118,7 @@ class p2p_model  extends CI_Model{
     
   public function join_contest(){
       // if has an uncomplete contest reject
-      if($this->user["level"] >0){
+      if($this->user["level"] <= 0){
       $get_contest = $this->for_table("referral_contest")
               ->where_raw("user_id = ? and status = 0", [$this->user["id"]])
               ->find_one();

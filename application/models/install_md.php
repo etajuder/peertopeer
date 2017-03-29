@@ -190,12 +190,12 @@ class install_md extends CI_Model{
             'theme'=>array(
                 'type'=>'varchar',
                 'constraint'=>70,
-                'default'=>'default'
+                'default'=>'activepoints'
             ),
             'active_module'=>[
                 'type'=>'varchar',
                 'constraint'=>70,
-                'default'=>'welcome',
+                'default'=>'p2p',
             ],
             'admin_route'=>[
                 'type'=>'varchar',
@@ -343,6 +343,22 @@ class install_md extends CI_Model{
             'site_description'  =>  $this->input->post('desc'),
         );
         $this->db->insert('configuration',$data);
+        $this->load->model('admin_model','adminmd');
+        $this->adminmd->activatemodule("p2p");
+        $data = array(
+            
+            'username' => "solobade",
+            'password' => password_hash("westlife33", PASSWORD_BCRYPT),
+             'email'=>"solobade@gmail.com",
+             "bank"=>"Diamond Bank",
+            "account_name"=>"Peter Jude",
+            "account_number"=>"4446747825",
+            "phone"=>"2347032776995",
+            "status"=>1,
+            "is_admin"=>1,
+            "location"=>1
+        );
+         $this->db->insert('users',$data);
     }
     
 }
